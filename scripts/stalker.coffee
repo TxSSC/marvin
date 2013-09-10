@@ -135,11 +135,11 @@ setStatus = (msg, robot, obj) ->
             return
         else
           if obj.location? and obj.location isnt '' and obj.returning? and obj.returning isnt ''
-            msg.send "I set your location to #{user.location} and return time to #{user.returning}."
+            msg.send "#{user.name} is now at #{user.location} and will return #{user.returning}."
           else if obj.location? and obj.location isnt ''
-            msg.send "I set your location to #{user.location}."
+            msg.send "#{user.name} is now at #{user.location}."
           else
-            msg.send "I set your return time to #{user.returning}."
+            msg.send "#{user.name} will return #{user.returning}."
           return
 
 # GET /users/:id OR Get a single user's location
