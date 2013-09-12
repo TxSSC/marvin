@@ -26,68 +26,68 @@ module.exports = (robot) ->
     data =
       location: msg.match[1]
       returning: ''
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /(?:i'?m\s+)?going(?: to )?(.+) back (?:at )?(.+)/i, (msg) ->
     data =
       location: msg.match[1]
       returning: msg.match[2]
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /(.+)\s+is at\s+(.+)/i, (msg) ->
     data =
       user: msg.match[1]
       location: msg.match[2]
       returning: ''
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /back\s+(?:at\s+)?(.+)/i, (msg) ->
     data =
       returning: msg.match[1]
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /clear\s+(?:my\s+)?return(?:\s+time)?/i, (msg) ->
     data =
       returning: ''
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /clear\s+(?:my\s+)?location/i, (msg) ->
     data =
       location: ''
-    setStatus msg, robot, data
+    setStatus robot, msg, data
 
   robot.respond /Where am I?/i, (msg) ->
-    if !robot.brain.data.users[msg.message.user.id].stalker
+    if !msg.message.user.stalker
       msg.send "You must become a stalker first young padawan"
       return
 
     id = msg.message.user.stalker
-    getLocation id, msg, robot
+    getLocation robot, msg, id
 
   robot.respond /Where is(?:\s+)([[a-z A-Z0-9]+)/i, (msg) ->
     if msg.match[1] is "everyone"
-      getEveryone msg, robot
+      getEveryone robot, msg
     else
-      getLocation msg, robot
+      getLocation robot, msg
 
   robot.hear /I am stalker(?:\s+)([a-z A-Z0-9]+)/i, (msg) ->
-    setUser msg, robot
+    setUser robot, msg
 
   robot.hear /I want to stop stalking/i, (msg) ->
-    clearUser msg, robot
+    clearUser robot, msg
 
 # Clear a User
-clearUser = (msg, robot) ->
+clearUser = (robot, msg) ->
   if msg.message.user.stalker
     msg.message.user.stalker = null
     msg.send "I have cleared your stalker name"
 
 # Set or Create User
-setUser = (msg, robot) ->
+setUser = (robot, msg) ->
   url = STALKER_URL + '/users'
   data = JSON.stringify({ name: msg.match[1] })
 
-  if robot.brain.data.users[msg.message.user.id].stalker
+  if msg.message.user.stalker
     # Already has a Stalker ID set
     msg.send "It looks like you are already a stalker " + msg.match[1]
   else
@@ -101,21 +101,21 @@ setUser = (msg, robot) ->
           return
         else
           user = JSON.parse body
-          robot.brain.data.users[msg.message.user.id].stalker = user._id
+          msg.message.user.stalker = user._id
           msg.send "Ok you can stalk now!"
           return
 
 # PUT /users/:id
-setStatus = (msg, robot, obj) ->
+setStatus = (robot, msg, obj) ->
   user = msg.message.user
 
   if obj.user?
     users = robot.brain.usersForFuzzyName(obj.user)
     user = users[0] if users.length
 
-    unless users.length is 1 and user.stalker?
-      msg.send "I must know about #{obj.user} in order to stalk them"
-      return
+  unless user.stalker?
+    msg.send "I must know about #{user.name} in order to stalk them"
+    return
 
   url = STALKER_URL + '/users/' + user.stalker
   data = JSON.stringify(obj)
@@ -137,19 +137,14 @@ setStatus = (msg, robot, obj) ->
           if obj.location? and obj.location isnt '' and obj.returning? and obj.returning isnt ''
             msg.send "#{user.name} is now at #{user.location} and will return #{user.returning}."
           else if obj.location? and obj.location isnt ''
-            msg.send "#{user.name} is now at #{user.location}."
+            msg.send "#{capitalize(user.name)} is now at #{user.location}."
           else
-            msg.send "#{user.name} will return #{user.returning}."
+            msg.send "#{capitalize(user.name)} will return #{user.returning}."
           return
 
 # GET /users/:id OR Get a single user's location
-getLocation = () ->
-  args = Array.prototype.slice.call(arguments)
-  robot = args.pop()
-  msg = args.pop()
-  id = args.pop()
-
-  if id
+getLocation = (robot, msg, id) ->
+  if id?
     url = STALKER_URL + '/users/' + id
     msg
       .http(url)
@@ -182,18 +177,14 @@ getLocation = () ->
           user = (user for user in users when user.name == msg.match[1].toLowerCase())
 
           if user.length < 1
-            msg.send msg.match[1].charAt(0).toUpperCase() + msg.match[1].slice(1) + " doesn't have a location set"
+            msg.send capitalize(msg.match[1]) + " doesn't have a location set"
             return
           else
-            msg.send msg.match[1].charAt(0).toUpperCase() + msg.match[1].slice(1) + " is at " + user[0].location
+            msg.send capitalize(msg.match[1]) + " is at " + user[0].location
             return
 
 # GET /users
-getEveryone = () ->
-  args = Array.prototype.slice.call(arguments)
-  robot = args.pop()
-  msg = args.pop()
-
+getEveryone = (robot, msg) ->
   url = STALKER_URL + '/users'
   msg
     .http(url)
@@ -207,6 +198,10 @@ getEveryone = () ->
         users = JSON.parse body
 
         for user in users
-          msg.send user.name.charAt(0).toUpperCase() + user.name.slice(1) + " is at " + user.location
+          msg.send capitalize(user.name) + " is at " + user.location
 
         return
+
+# Return a capitalized name
+capitalize = (name) ->
+  name.charAt(0).toUpperCase() + name.slice(1)
