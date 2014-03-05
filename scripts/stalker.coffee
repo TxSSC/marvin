@@ -98,7 +98,6 @@ setUser = (robot, msg) ->
         if res.statusCode isnt 200
           msg.send "Looks like there was an error making your stalker account"
         else
-          msg.send body
           users = JSON.parse body
 
           for u in users
