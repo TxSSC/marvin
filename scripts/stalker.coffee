@@ -94,16 +94,34 @@ setUser = (robot, msg) ->
     msg
       .http(url)
       .headers('Content-Type': 'application/json')
-      .post(data) (err, res, body) ->
-        if res.statusCode isnt 201
-          error = JSON.parse body
-          msg.send "Whoops looks like there was an error adding you: #{error.error}"
-          return
+      .get() (err, res, body) ->
+        if res.statusCode isnt 200
+          msg.send "Looks like there was an error making your stalker account"
         else
-          user = JSON.parse body
-          msg.message.user.stalker = user._id
-          msg.send "Ok you can stalk now!"
-          return
+          msg.send body
+          users = JSON.parse body
+
+          for u in users
+            user = u if u.name.toLowerCase().indexOf(msg.match[1].toLowerCase()) > -1
+
+          if user
+            msg.message.user.stalker = user._id
+            msg.send "Ok you can stalk now!"
+          else
+            # Create user
+            msg
+              .http(url)
+              .headers('Content-Type': 'application/json')
+              .post(data) (err, res, body) ->
+                if res.statusCode isnt 201
+                  error = JSON.parse body
+                  msg.send "Whoops looks like there was an error adding you: #{error.error}"
+                  return
+                else
+                  user = JSON.parse body
+                  msg.message.user.stalker = user._id
+                  msg.send "Ok you can stalk now!"
+                  return
 
 # PUT /users/:id
 setStatus = (robot, msg, obj) ->
