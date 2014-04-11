@@ -20,7 +20,7 @@ module.exports = (robot) ->
     n = 1
     if msg.match[1]?
       n = msg.match[1]
-    robot.http('http://'+_ip+':'+_port)
+    robot.http('http://'+_ip+':'+_port+'/events')
       .query({
         push: req
         times: n
@@ -29,9 +29,9 @@ module.exports = (robot) ->
         response = body
         msg.reply "Pushing "+req+" "+n+" times"
 
-  robot.respond /LOAD (.*)/i, (msg) ->
+  robot.respond /LOAD (.*)$/i, (msg) ->
     query = msg.match[1]
-    robot.http('http://'+_ip+':'+_port)
+    robot.http('http://'+_ip+':'+_port+'/events')
       .query({
         load: query
       })
@@ -39,26 +39,32 @@ module.exports = (robot) ->
         response = body
         msg.reply "Loading "+response+".gba"
 
-  robot.respond /UP\s*(\d+)?/i, (msg) ->
-    push_req('up', msg)
+  robot.respond /UP\s*(\d+)?$/i, (msg) ->
+    push_req('UP', msg)
 
-  robot.respond /DOWN\s*(\d+)?/i, (msg) ->
-    push_req('down', msg)
+  robot.respond /DOWN\s*(\d+)?$/i, (msg) ->
+    push_req('DOWN', msg)
 
-  robot.respond /LEFT\s*(\d+)?/i, (msg) ->
-    push_req('left', msg)
+  robot.respond /LEFT\s*(\d+)?$/i, (msg) ->
+    push_req('LEFT', msg)
 
-  robot.respond /RIGHT\s*(\d+)?/i, (msg) ->
-    push_req('right', msg)
+  robot.respond /RIGHT\s*(\d+)?$/i, (msg) ->
+    push_req('RIGHT', msg)
 
-  robot.respond /A\s*(\d+)?/i, (msg) ->
+  robot.respond /A\s*(\d+)?$/i, (msg) ->
     push_req('A', msg)
 
-  robot.respond /B\s*(\d+)?/i, (msg) ->
+  robot.respond /B\s*(\d+)?$/i, (msg) ->
     push_req('B', msg)
 
-  robot.respond /START\s*(\d+)?/i, (msg) ->
+  robot.respond /L\s*(\d+)?$/i, (msg) ->
+    push_req('L', msg)
+
+  robot.respond /R\s*(\d+)?$/i, (msg) ->
+    push_req('R', msg)
+
+  robot.respond /START\s*(\d+)?$/i, (msg) ->
     push_req('START', msg)
 
-  robot.respond /SELECT\s*(\d+)?/i, (msg) ->
+  robot.respond /SELECT\s*(\d+)?$/i, (msg) ->
     push_req('SELECT', msg)
