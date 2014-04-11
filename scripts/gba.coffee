@@ -12,15 +12,14 @@
 #   hubot START <#> - Press the START button <#> times
 #   hubot SELECT <#> - Press the SELECT button <#> times
 
-_ip = '127.0.0.1'
-_port = '1337'
+GBA_URL = process.env.HUBOT_GBA_URL
 
 module.exports = (robot) ->
   push_req = (req, msg) ->
     n = 1
     if msg.match[1]?
       n = msg.match[1]
-    robot.http('http://'+_ip+':'+_port+'/events')
+    robot.http(GBA_URL+'/events')
       .query({
         push: req
         times: n
@@ -31,7 +30,7 @@ module.exports = (robot) ->
 
   robot.respond /LOAD (.*)$/i, (msg) ->
     query = msg.match[1]
-    robot.http('http://'+_ip+':'+_port+'/events')
+    robot.http(GBA_URL+'/events')
       .query({
         load: query
       })
