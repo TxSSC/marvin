@@ -5,219 +5,146 @@
 #   your company's stalker server.
 #
 # Commands:
-#   I am stalker <name> - Link your hubot user and stalker user
-#   I want to stop stalking - Clear your stalker data from hubot
-#   hubot I'm at <location> - Set your current location and clear your return time
-#   hubot <name> is at <location>
-#   hubot Back at <time or date> - Set the time you will be back
-#   hubot Going to <location> back at <time> - Set your current location and return time
-#   hubot Im going <location> back <time> - Set your current location and return time
-#   hubot Clear my location - Clear your set location
-#   hubot Clear my return time - Clear your back time status
-#   hubot Where am I? - List your current location
-#   hubot Where is <name>? - Show the location of the user, for stalking
-#   hubot Where is everyone? - Shows everyone's location
+#   hubot s <name> - An alias for `stalker <name>`
+#   hubot s clear - An alias for `stalker clear`
+#   hubot stalker <name> - Link your hubot user and stalker user accounts
+#   hubot stalker clear - Clear your cached stalker data from hubot
+#   hubot c <location> - Set your location to <location>
+#   hubot c <location> b <time> - An alias for `custom <location> back <time>`
+#   hubot custom <location> back <time> - Set your location to <location> and return time to <time>
+#   hubot s info - An alias for `stalker info`
+#   hubot stalker info - Show your currently set stalker data
 
 STALKER_URL = process.env.HUBOT_STALKER_URL
 
 module.exports = (robot) ->
 
-  robot.respond /(?:i'?m\s+)?at\s+([a-z A-Z0-9]+)/i, (msg) ->
+  # Simple status
+  robot.respond /(i(?=n)?|l(?=unch)?|o(?=ut)?)/i, (msg) ->
+    location = switch msg.match[1]
+      when 'i' then 'In'
+      when 'l' then 'Lunch'
+      when 'o' then 'Out'
+
     data =
-      location: msg.match[1]
+      location: location
       returning: ''
-    setStatus robot, msg, data
 
-  robot.respond /(?:i'?m\s+)?going(?: to )?(.+) back (?:at )?(.+)/i, (msg) ->
+    setStatus(msg, data)
+
+  # Custom messages, return time optional
+  robot.respond /c(?:ustom)?\s+(.+)\s+b(?:ack)?\s+(.+)|c(?:ustom)?\s+(.+)/i, (msg) ->
     data =
-      location: msg.match[1]
-      returning: msg.match[2]
-    setStatus robot, msg, data
+      location: msg.match[1] || msg.match[3]
+      returning: msg.match[2] || ''
 
-  robot.respond /(.+)\s+is at\s+(.+)/i, (msg) ->
-    data =
-      user: msg.match[1]
-      location: msg.match[2]
-      returning: ''
-    setStatus robot, msg, data
+    setStatus(msg, data)
 
-  robot.respond /back\s+(?:at\s+)?(.+)/i, (msg) ->
-    data =
-      returning: msg.match[1]
-    setStatus robot, msg, data
+  # Retrieve stalker status
+  robot.respond /s(?:talker)?\s+(?:tell|show)/i, (msg) ->
+    getLocation(msg)
 
-  robot.respond /clear\s+(?:my\s+)?return(?:\s+time)?/i, (msg) ->
-    data =
-      returning: ''
-    setStatus robot, msg, data
+  # Connect the stalker account
+  robot.respond /s(?:talker)?\s+(\w+)/i, (msg) ->
+    setUser(msg, msg.match[1])
 
-  robot.respond /clear\s+(?:my\s+)?location/i, (msg) ->
-    data =
-      location: ''
-    setStatus robot, msg, data
-
-  robot.respond /Where am I?/i, (msg) ->
-    if !msg.message.user.stalker
-      msg.send "You must become a stalker first young padawan"
-      return
-
-    id = msg.message.user.stalker
-    getLocation robot, msg, id
-
-  robot.respond /Where is(?:\s+)([[a-z A-Z0-9]+)/i, (msg) ->
-    if msg.match[1] is "everyone"
-      getEveryone robot, msg
-    else
-      getLocation robot, msg
-
-  robot.hear /I am stalker(?:\s+)([a-z A-Z0-9]+)/i, (msg) ->
-    setUser robot, msg
-
-  robot.hear /I want to stop stalking/i, (msg) ->
-    clearUser robot, msg
+  # Clear the stalker account
+  robot.respond /s(?:talker)?\s+clear/i, (msg) ->
+    clearUser(msg)
 
 # Clear a User
-clearUser = (robot, msg) ->
-  if msg.message.user.stalker
-    msg.message.user.stalker = null
-    msg.send "I have cleared your stalker name"
+clearUser = (msg) ->
+  if msg.message.user.stalker?
+    delete msg.message.user.stalker
+    msg.send("I have already forgotten who you are.")
+  else
+    msg.send("Oh well, I knew nothing about you anyways.")
 
 # Set or Create User
-setUser = (robot, msg) ->
-  url = STALKER_URL + '/users'
-  data = JSON.stringify({ name: msg.match[1] })
+setUser = (msg, user) ->
+  data = JSON.stringify({ name: user })
 
-  if msg.message.user.stalker
+  if msg.message.user.stalker?
     # Already has a Stalker ID set
-    msg.send "It looks like you are already a stalker " + msg.match[1]
+    msg.send("You have already told me who you are, #{capitalize(user)}")
   else
     msg
-      .http(url)
+      .http("#{STALKER_URL}/users")
       .headers('Content-Type': 'application/json')
       .get() (err, res, body) ->
-        if res.statusCode isnt 200
-          msg.send "Looks like there was an error making your stalker account"
+        if res.statusCode != 200
+          msg.send("Something went wrong linking your stalker account.")
         else
-          users = JSON.parse body
+          users = JSON.parse(body)
 
           for u in users
             user = u if u.name.toLowerCase().indexOf(msg.match[1].toLowerCase()) > -1
 
           if user
-            msg.message.user.stalker = user._id
-            msg.send "Ok you can stalk now!"
+            msg.message.user.stalker = user.id
+            msg.send("You're good to go!")
           else
-            # Create user
             msg
-              .http(url)
+              .http("#{STALKER_URL}/users")
               .headers('Content-Type': 'application/json')
               .post(data) (err, res, body) ->
-                if res.statusCode isnt 201
-                  error = JSON.parse body
-                  msg.send "Whoops looks like there was an error adding you: #{error.error}"
-                  return
+                if res.statusCode != 201
+                  error = JSON.parse(body)
+                  msg.send("Something went wrong while creating your account. #{error.error}")
                 else
-                  user = JSON.parse body
-                  msg.message.user.stalker = user._id
-                  msg.send "Ok you can stalk now!"
-                  return
+                  user = JSON.parse(body)
+                  msg.message.user.stalker = user.id
+                  msg.send("Ok you can stalk now!")
 
 # PUT /users/:id
-setStatus = (robot, msg, obj) ->
+setStatus = (msg, obj) ->
   user = msg.message.user
 
-  if obj.user?
-    users = robot.brain.usersForFuzzyName(obj.user)
-    user = users[0] if users.length
-
   unless user.stalker?
-    msg.send "I must know about #{user.name} in order to stalk them"
+    msg.send("You must tell me who you are mystery person, try asking for some help.")
     return
 
-  url = STALKER_URL + '/users/' + user.stalker
-  data = JSON.stringify(obj)
   msg
-    .http(url)
+    .http("#{STALKER_URL}/users/#{user.stalker}")
     .headers('Content-Type': 'application/json')
-    .put(data) (err, res, body) ->
-      if res.statusCode isnt 200
-        error = JSON.parse body
-        msg.send "Whoops looks like there was an error setting your status: #{error.error}"
+    .put(JSON.stringify(data)) (err, res, body) ->
+      if res.statusCode != 200
+        error = JSON.parse(body)
+        msg.send("Whoops looks like there was an error setting your status: #{error.error}")
         return
       else
-        user = JSON.parse body
-        if Object.keys(obj).length is 1 and (obj.location? and
-          user.location is '' or obj.returning? and user.returning is '')
-            msg.send "I cleared that status."
-            return
-        else
-          if obj.location? and obj.location isnt '' and obj.returning? and obj.returning isnt ''
-            msg.send "#{user.name} is now at #{user.location} and will return #{user.returning}."
-          else if obj.location? and obj.location isnt ''
-            msg.send "#{capitalize(user.name)} is now at #{user.location}."
-          else
-            msg.send "#{capitalize(user.name)} will return #{user.returning}."
-          return
+        user = JSON.parse(body)
 
-# GET /users/:id OR Get a single user's location
-getLocation = (robot, msg, id) ->
-  if id?
-    url = STALKER_URL + '/users/' + id
-    msg
-      .http(url)
-      .headers('Content-Type': 'application/json')
-      .get() (err, res, body) ->
-        if res.statusCode isnt 200
-          error = JSON.parse body
-          msg.send "Whoops looks like there was an error getting your location: #{error.error}"
-          return
+        if obj.location? != '' and obj.returning? != ''
+          msg.send("You're now at #{user.location} and returning at #{user.returning}.")
         else
-          user = JSON.parse body
-          if user.location == ''
-            msg.send "You don't have a location set"
-            return
-          else
-            msg.send "Your at " + user.location
-            return
-  else
-    url = STALKER_URL + '/users'
-    msg
-      .http(url)
-      .headers('Content-Type': 'application/json')
-      .get() (err, res, body) ->
-        if res.statusCode isnt 200
-          error = JSON.parse body
-          msg.send "Whoops looks like there was an error...Oh long johnson!: #{error.error}"
-          return
-        else
-          users = JSON.parse body
-          user = (user for user in users when user.name == msg.match[1].toLowerCase())
+          msg.send("You're now #{user.location}")
 
-          if user.length < 1
-            msg.send capitalize(msg.match[1]) + " doesn't have a location set"
-            return
-          else
-            msg.send capitalize(msg.match[1]) + " is at " + user[0].location
-            return
+# GET /users/:id
+getLocation = (msg) ->
+  user = msg.message.user
 
-# GET /users
-getEveryone = (robot, msg) ->
-  url = STALKER_URL + '/users'
+  unless user.stalker?
+    msg.send("You must tell me who you are mystery person, try asking for some help.")
+    return
+
   msg
-    .http(url)
+    .http("#{STALKER_URL}/users/#{user.stalker}")
     .headers('Content-Type': 'application/json')
     .get() (err, res, body) ->
-      if res.statusCode isnt 200
-        error = JSON.parse body
-        msg.send "Whoops looks like there was an error...Oh long johnson!: #{error.error}"
-        return
+      if res.statusCode != 200
+        error = JSON.parse(body)
+        msg.send "Something has run amuck! #{error.error}"
       else
-        users = JSON.parse body
+        user = JSON.parse(body)
 
-        for user in users
-          msg.send capitalize(user.name) + " is at " + user.location
-
-        return
+        if user.location == ''
+          msg.send("I'm afraid I know nothing about where you are.")
+        else
+          if user.returning
+            msg.send("I heard you were at #{user.location} and returning at #{user.returning}.")
+          else
+            msg.send("The last I heard you were #{user.location}")
 
 # Return a capitalized name
 capitalize = (name) ->
