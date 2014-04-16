@@ -20,11 +20,11 @@ STALKER_URL = process.env.HUBOT_STALKER_URL
 module.exports = (robot) ->
 
   # Simple status
-  robot.respond /(i(?=n)?|l(?=unch)?|o(?=ut)?)/i, (msg) ->
+  robot.respond /(i(?:n)?|l(?:unch)?|o(?:ut)?)$/i, (msg) ->
     location = switch msg.match[1]
-      when 'i' then 'In'
-      when 'l' then 'Lunch'
-      when 'o' then 'Out'
+      when 'i', 'in' then 'In'
+      when 'l', 'lunch' then 'Lunch'
+      when 'o', 'out' then 'Out'
 
     data =
       location: location
