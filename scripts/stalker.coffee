@@ -21,7 +21,7 @@ module.exports = (robot) ->
 
   # Simple status
   robot.respond /(i(?:n)?|l(?:unch)?|o(?:ut)?)$/i, (msg) ->
-    location = switch msg.match[1]
+    location = switch msg.match[1].toLowerCase()
       when 'i', 'in' then 'In'
       when 'l', 'lunch' then 'Lunch'
       when 'o', 'out' then 'Out'
