@@ -40,17 +40,12 @@ module.exports = (robot) ->
 
     setStatus(msg, data)
 
-  # Retrieve stalker status
-  robot.respond /s(?:talker)?\s+(?:tell|show)/i, (msg) ->
-    getLocation(msg)
-
-  # Connect the stalker account
+  # Stalker settings based commands, tell|show, clear, set
   robot.respond /s(?:talker)?\s+(\w+)/i, (msg) ->
-    setUser(msg, msg.match[1])
-
-  # Clear the stalker account
-  robot.respond /s(?:talker)?\s+clear/i, (msg) ->
-    clearUser(msg)
+    switch msg.match[1]
+      when 'clear' then clearUser(msg)
+      when 'tell', 'show' then getLocation(msg)
+      else setUser(msg, msg.match[1])
 
 # Clear a User
 clearUser = (msg) ->
