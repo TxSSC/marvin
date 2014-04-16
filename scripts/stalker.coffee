@@ -61,7 +61,7 @@ setUser = (msg, user) ->
 
   if msg.message.user.stalker?
     # Already has a Stalker ID set
-    msg.send("You have already told me who you are, #{capitalize(user)}")
+    msg.send("I already know you by #{capitalize(msg.message.user.stalker.name)}")
   else
     msg
       .http("#{STALKER_URL}/users")
@@ -76,7 +76,10 @@ setUser = (msg, user) ->
             user = u if u.name.toLowerCase().indexOf(msg.match[1].toLowerCase()) > -1
 
           if user
-            msg.message.user.stalker = user.id
+            msg.message.user.stalker =
+              id: user.id
+              name: user.name
+
             msg.send("You're good to go!")
           else
             msg
@@ -88,11 +91,14 @@ setUser = (msg, user) ->
                   msg.send("Something went wrong while creating your account. #{error.error}")
                 else
                   user = JSON.parse(body)
-                  msg.message.user.stalker = user.id
+                  msg.message.user.stalker =
+                    id: user.id
+                    name: user.name
+
                   msg.send("Ok you can stalk now!")
 
 # PUT /users/:id
-setStatus = (msg, obj) ->
+setStatus = (msg, data) ->
   user = msg.message.user
 
   unless user.stalker?
@@ -100,17 +106,17 @@ setStatus = (msg, obj) ->
     return
 
   msg
-    .http("#{STALKER_URL}/users/#{user.stalker}")
+    .http("#{STALKER_URL}/users/#{user.stalker.id}")
     .headers('Content-Type': 'application/json')
     .put(JSON.stringify(data)) (err, res, body) ->
       if res.statusCode != 200
         error = JSON.parse(body)
         msg.send("Whoops looks like there was an error setting your status: #{error.error}")
-        return
       else
         user = JSON.parse(body)
 
-        if obj.location? != '' and obj.returning? != ''
+        if user.location? && user.location != '' &&
+            user.returning? && user.returning != ''
           msg.send("You're now at #{user.location} and returning at #{user.returning}.")
         else
           msg.send("You're now #{user.location}")
@@ -124,22 +130,21 @@ getLocation = (msg) ->
     return
 
   msg
-    .http("#{STALKER_URL}/users/#{user.stalker}")
+    .http("#{STALKER_URL}/users/#{user.stalker.id}")
     .headers('Content-Type': 'application/json')
     .get() (err, res, body) ->
       if res.statusCode != 200
         error = JSON.parse(body)
-        msg.send "Something has run amuck! #{error.error}"
+        msg.send("Something has run amuck! #{error.error}")
       else
         user = JSON.parse(body)
 
-        if user.location == ''
+        if !user.location? || user.location == ''
           msg.send("I'm afraid I know nothing about where you are.")
+        else if user.returning? && user.returning != ''
+          msg.send("I heard you were at #{user.location} and returning at #{user.returning}.")
         else
-          if user.returning
-            msg.send("I heard you were at #{user.location} and returning at #{user.returning}.")
-          else
-            msg.send("The last I heard you were #{user.location}")
+          msg.send("The last I heard you were #{user.location}")
 
 # Return a capitalized name
 capitalize = (name) ->
