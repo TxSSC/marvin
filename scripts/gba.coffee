@@ -27,6 +27,8 @@ module.exports = (robot) ->
     c = msg.match[1]
     n = msg.match[2] || 1
 
+    return if c.toLowerCase() == 'load'
+
     msg
       .http(GBA_URL)
       .query({ push: c, times: n })
