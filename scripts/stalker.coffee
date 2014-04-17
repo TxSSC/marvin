@@ -5,14 +5,13 @@
 #   your company's stalker server.
 #
 # Commands:
-#   hubot s <name> - An alias for `stalker <name>`
-#   hubot s clear - An alias for `stalker clear`
+#   hubot i - Set your status to In
+#   hubot o - Set your status to Out
+#   hubot b - Set your status to Back
+#   hubot b <time> - Set your status to Back and return tim to <time>
 #   hubot stalker <name> - Link your hubot user and stalker user accounts
 #   hubot stalker clear - Clear your cached stalker data from hubot
-#   hubot c <location> - Set your location to <location>
-#   hubot c <location> b <time> - An alias for `custom <location> back <time>`
-#   hubot custom <location> back <time> - Set your location to <location> and return time to <time>
-#   hubot s info - An alias for `stalker info`
+#   hubot at <location> return <date> - Set your location to <location> and return time to <time>
 #   hubot stalker info - Show your currently set stalker data
 
 STALKER_URL = process.env.HUBOT_STALKER_URL
@@ -20,10 +19,10 @@ STALKER_URL = process.env.HUBOT_STALKER_URL
 module.exports = (robot) ->
 
   # Simple status
-  robot.respond /(i(?:n)?|l(?:unch)?|o(?:ut)?)$/i, (msg) ->
+  robot.respond /(i(?:n)?|b(?:ack)?|o(?:ut)?)$/i, (msg) ->
     location = switch msg.match[1].toLowerCase()
       when 'i', 'in' then 'In'
-      when 'l', 'lunch' then 'Lunch'
+      when 'b', 'back' then 'Back'
       when 'o', 'out' then 'Out'
 
     data =
@@ -32,11 +31,30 @@ module.exports = (robot) ->
 
     setStatus(msg, data)
 
-  # Custom messages, return time optional
-  robot.respond /c(?:ustom)?\s+(.+)\s+b(?:ack)?\s+(.+)|c(?:ustom)?\s+(.+)/i, (msg) ->
+  robot.respond /b(?:ack)?\s+(.+)/i, (msg) ->
+    time = msg.match[1]
+
+    unless time.match(/^\d{1,2}:\d{2}$/)
+      msg.send("I'm afraid I need a real time, please use format hh:mm")
+      return
+
     data =
-      location: msg.match[1] || msg.match[3]
-      returning: msg.match[2] || ''
+      location: 'Back'
+      returning: time
+
+    setStatus(msg, data)
+
+  # Custom messages, return time optional
+  robot.respond /a(?:t)?\s+(.+)\s+r(?:eturn)?\s+(.+)/i, (msg) ->
+    date = msg.match[2]
+
+    unless date.match(/^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}$/)
+      msg.send("I would like an actual date in the format mm/dd/yyyy")
+      return
+
+    data =
+      location: msg.match[1]
+      returning: date
 
     setStatus(msg, data)
 
@@ -87,8 +105,7 @@ setUser = (msg, user) ->
               .headers('Content-Type': 'application/json')
               .post(data) (err, res, body) ->
                 if res.statusCode != 201
-                  error = JSON.parse(body)
-                  msg.send("Something went wrong while creating your account. #{error.error}")
+                  msg.send("Something went wrong while creating your account.")
                 else
                   user = JSON.parse(body)
                   msg.message.user.stalker =
@@ -110,8 +127,7 @@ setStatus = (msg, data) ->
     .headers('Content-Type': 'application/json')
     .put(JSON.stringify(data)) (err, res, body) ->
       if res.statusCode != 200
-        error = JSON.parse(body)
-        msg.send("Whoops looks like there was an error setting your status: #{error.error}")
+        msg.send("Whoops looks like there was an error setting your status")
       else
         user = JSON.parse(body)
 
@@ -134,8 +150,7 @@ getLocation = (msg) ->
     .headers('Content-Type': 'application/json')
     .get() (err, res, body) ->
       if res.statusCode != 200
-        error = JSON.parse(body)
-        msg.send("Something has run amuck! #{error.error}")
+        msg.send("Something has run amuck!")
       else
         user = JSON.parse(body)
 
