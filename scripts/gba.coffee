@@ -9,7 +9,7 @@ GBA_URL = process.env.HUBOT_GBA_URL
 
 module.exports = (robot) ->
 
-  robot.respond /load\s+(.*)$/i, (msg) ->
+  robot.respond /gba\s+load\s+(.*)$/i, (msg) ->
     rom = msg.match[1]
 
     robot
