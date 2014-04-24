@@ -8,10 +8,10 @@
 #   hubot i - Set your status to In
 #   hubot o - Set your status to Out
 #   hubot b - Set your status to Back
-#   hubot b <time> - Set your status to Back and return tim to <time>
+#   hubot b <time> - Set your status to Back and return time to <time>
 #   hubot stalker <name> - Link your hubot user and stalker user accounts
 #   hubot stalker clear - Clear your cached stalker data from hubot
-#   hubot at <location> return <date> - Set your location to <location> and return time to <time>
+#   hubot at <location> return <date> - Set your location to <location> and return date to <date>
 #   hubot stalker info - Show your currently set stalker data
 
 STALKER_URL = process.env.HUBOT_STALKER_URL
@@ -133,7 +133,7 @@ setStatus = (msg, data) ->
 
         if user.location? && user.location != '' &&
             user.returning? && user.returning != ''
-          msg.send("You're now at #{user.location} and returning at #{user.returning}.")
+          msg.send("You're now #{user.location} and returning at #{user.returning}.")
         else
           msg.send("You're now #{user.location}")
 
