@@ -1,5 +1,5 @@
 # Description:
-#
+#   Get a random programmer's excuse
 #
 # Commands:
 #   hubot give me an excuse - Generate a programmer excuse

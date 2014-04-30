@@ -1,5 +1,5 @@
 # Description:
-#   stalker.coffee uses Stalker, an open source API to see where your coworker are:
+#   stalker.coffee uses Stalker, an open source API to see where your coworkers are:
 #     https://github.com/TxSSC/Stalker
 #   Make sure you set up your HUBOT_STALKER_URL environment variable with the URL to
 #   your company's stalker server.
