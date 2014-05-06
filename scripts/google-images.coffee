@@ -15,6 +15,10 @@ module.exports = (robot) ->
   robot.respond /animate( me)? (.*)/i, (msg) ->
     imageMe msg, msg.match[2], true, (url) ->
       msg.send url
+      
+  robot.respond /anime( me)? (.*)/i, (msg) ->
+    imageMe msg, 'anime '+msg.match[3], (url) ->
+      msg.send url
 
   robot.respond /(?:mo?u)?sta(?:s|c)he?(?: me)? (.*)/i, (msg) ->
     type = Math.floor(Math.random() * 3)
