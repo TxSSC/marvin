@@ -15,7 +15,7 @@ EXCUSES = [
   "It works, but it hasn't been tested."
   "This can't be the source of that!"
   "I can't test everything..."
-  "It's just come unlucky coincidence."
+  "It's just some unlucky coincidence."
   "You must have the wrong version"
   "I haven't touched that module in weeks!"
   "There has to be something funky in your data."
