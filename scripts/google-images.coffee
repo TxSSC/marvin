@@ -17,7 +17,7 @@ module.exports = (robot) ->
       msg.send url
       
   robot.respond /anime( me)? (.*)/i, (msg) ->
-    imageMe msg, 'anime '+msg.match[3], (url) ->
+    imageMe msg, msg.match[3]+' anime', (url) ->
       msg.send url
 
   robot.respond /(?:mo?u)?sta(?:s|c)he?(?: me)? (.*)/i, (msg) ->
