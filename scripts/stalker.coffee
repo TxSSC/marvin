@@ -7,11 +7,11 @@
 # Commands:
 #   hubot i - Set your status to In
 #   hubot o - Set your status to Out
-#   hubot b - Set your status to Back
-#   hubot b <time> - Set your status to Back and return time to <time>
+#   hubot l - Set your status to Lunch
+#   hubot b <date|time> - Set your status to Back and return date/time to <date|time>
 #   hubot stalker <name> - Link your hubot user and stalker user accounts
 #   hubot stalker clear - Clear your cached stalker data from hubot
-#   hubot at <location> return <date> - Set your location to <location> and return date to <date>
+#   hubot at <location> back <date> - Set your location to <location> and return date to <date>
 #   hubot stalker info - Show your currently set stalker data
 
 STALKER_URL = process.env.HUBOT_STALKER_URL
@@ -19,10 +19,10 @@ STALKER_URL = process.env.HUBOT_STALKER_URL
 module.exports = (robot) ->
 
   # Simple status
-  robot.respond /(i(?:n)?|b(?:ack)?|o(?:ut)?)$/i, (msg) ->
+  robot.respond /(i(?:n)?|l(?:unch)?|o(?:ut)?)$/i, (msg) ->
     location = switch msg.match[1].toLowerCase()
       when 'i', 'in' then 'In'
-      when 'b', 'back' then 'Back'
+      when 'l', 'lunch' then 'Lunch'
       when 'o', 'out' then 'Out'
 
     data =
@@ -31,30 +31,18 @@ module.exports = (robot) ->
 
     setStatus(msg, data)
 
-  robot.respond /b(?:ack)?\s+(.+)/i, (msg) ->
-    time = msg.match[1]
+  # Custom messages, location optional
+  robot.respond /a(?:t)?\s+(.+)\s+b(?:ack)?\s+(.+)|b(?:ack)?\s+(.+)/i, (msg) ->
+    back = msg.match[3] || msg.match[2]
+    valid = validate(back)
 
-    unless time.match(/^\d{1,2}:\d{2}$/)
-      msg.send("I'm afraid I need a real time, please use format hh:mm")
+    unless !valid
+      msg.send(valid)
       return
 
     data =
-      location: 'Back'
-      returning: time
-
-    setStatus(msg, data)
-
-  # Custom messages, return time optional
-  robot.respond /a(?:t)?\s+(.+)\s+r(?:eturn)?\s+(.+)/i, (msg) ->
-    date = msg.match[2]
-
-    unless date.match(/^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}$/)
-      msg.send("I would like an actual date in the format mm/dd/yyyy")
-      return
-
-    data =
-      location: msg.match[1]
-      returning: date
+      location: msg.match[1] || 'Back'
+      returning: back
 
     setStatus(msg, data)
 
@@ -164,3 +152,11 @@ getLocation = (msg) ->
 # Return a capitalized name
 capitalize = (name) ->
   name.charAt(0).toUpperCase() + name.slice(1)
+
+# Validate a date/time
+validate = (str) ->
+  time = /^\d{1,2}:\d{2}$/
+  date = /^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}$/
+
+  unless time.test(str) || date.test(str)
+    "I would like an actual time in the format hh:mm or date in the format mm/dd/yyyy"
