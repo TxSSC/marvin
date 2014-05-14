@@ -1,6 +1,9 @@
 # Description:
 #   Get a random koan
 #
+# Dependencies:
+#   "coffee-script": ">=1.7.0"
+#
 # Commands:
 #   hubot enlighten me - Generate a zen koan
 
