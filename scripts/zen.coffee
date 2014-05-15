@@ -5,52 +5,90 @@
 #   hubot enlighten me - Generate a zen koan
 
 ZEN = [
-  """A monk asked Joshu, a Chinese Zen master: \"Has a dog Buddha-nature or not?\"
-  Joshu answered: \"Mu.\""""
+  """What is the straight within the bend?"""
 
-  """Gutei raised his finger whenever he was asked a question about Zen. A boy attendant began to imitate him in this way. When anyone asked the boy what his master had preached about, the boy would raise his finger.
-  Gutei heard about the boy's mischief. He seized him and cut off his finger. The boy cried and ran away. Gutei called and stopped him. When the boy turned his head to Gutei, Gutei raised up his own finger. In that instant the boy was enlightened.
-  When Gutei was about to pass from this world he gathered his monks around him. \"I attained my finger-Zen,\" he said, \"from my teacher Tenryu, and in my whole life I could not exhaust it.\" Then he passed away."""
+  """You are at the top of the 100 foot high pole.
+  How will you make a step further?"""
 
-  """Wakuan complained when he saw a picture of bearded Bodhidharma: \"Why hasn't that fellow a beard?\""""
+  """If you have the staff, I will give it to you.
+  If you have no staff, I will take it away from you!"""
 
-  """Kyogen said: \"Zen is like a man hanging in a tree by his teeth over a precipice. His hands grasp no branch, his feet rest on no limb, and under the tree another person asks him: 'Why did Bodhidharma come to China from India?'\"
-  If the man in the tree does not answer, he fails; and if he does answer, he falls and loses his life. Now what shall he do?\""""
+  """What is the straight within the bent?"""
 
-  """When Buddha was in Grdhrakuta mountain he turned a flower in his fingers and held it before his listeners. Every one was silent. Only Maha-Kashapa smiled at this revelation, although he tried to control the lines of his face.
-  Buddha said: \"I have the eye of the true teaching, the heart of Nirvana, the true aspect of non-form, and the ineffable stride of Dharma. It is not expressed by words, but especially transmitted beyond teaching. This teaching I have given to Maha-Kashapa.\""""
+  """Two hands clap and there is a sound;
+  what is the sound of one hand?"""
 
-  """A monk told Joshu: \"I have just entered the monastery. Please teach me.\"
-  Joshu asked: \"Have you eaten your rice porridge?\"
-  The monk replied: \"I have eaten.\"
-  Joshu said: \"Then you had better wash your bowl.\"
-  At that moment the monk was enlightened."""
+  """Those who know don't talk.
+  Those who talk don't know."""
 
-  """Getsuan said to his students: \"Keichu, the first wheel-maker of China, made two wheels of fifty spokes each. Now, suppose you removed the nave uniting the spokes. What would become of the wheel? And had Keichu done this, could he be called the master wheel-maker?\""""
+  """Give evil nothing to oppose
+  and it will disappear by itself."""
 
-  """A monk asked Seijo: \"I understand that a Buddha who lived before recorded history sat in meditation for ten cycles of existence and could not realize the highest truth, and so could not become fully emancipated. Why was this so?\"
-  Seijo replied: \"Your question is self-explanatory.\"
-  The monk asked: \"Since the Buddha was meditating, why could he not fulfill Buddhahood?\"
-  Seijo said: \"He was not a Buddha.\""""
+  """All streams flow to the sea
+  because it is lower than they are.
+  Humility gives it its power."""
 
-  """A monk named Seizei asked of Sozan: \"Seizei is alone and poor. Will you give him support?\"
-  Sozan asked: \"Seizei?\"
-  Seizei responded: \"Yes, sir.\"
-  Sozan said: \"You have Zen, the best wine in China, and already have finished three cups, and still you are saying that they did not even wet your lips.\""""
+  """Rather than make the first move
+  it is better to wait and see.
+  Rather than advance an inch
+  it is better to retreat a yard."""
 
-  """Joshu went to a place where a monk had retired to meditate and asked him: \"What is, is what?\"
-  The monk raised his fist.
-  Joshu replied: \"Ships cannot remain where the water is too shallow.\" And he left.
-  A few days later Joshu went again to visit the monk and asked the same question.
-  The monk answered the same way.
-  Joshu said: \"Well given, well taken, well killed, well saved.\" And he bowed to the monk."""
+  """Thirty spokes join in one hub
+  In its emptiness, there is the function of a vehicle."""
 
-  """Zuigan called out to himself every day: \"Master.\"
-  Then he answered himself: \"Yes, sir.\"
-  And after that he added: \"Become sober.\"
-  Again he answered: \"Yes, sir.\"
-  \"And after that,\" he continued, \"do not be deceived by others.\"
-  \"Yes, sir; yes, sir,\" he answered."""
+  """Mix clay to create a container
+  In its emptiness, there is the function of a container."""
+
+  """That which exists is used to create benefit
+  That which is empty is used to create functionality."""
+
+  """End sagacity; abandon knowledge
+  The people benefit a hundred times."""
+
+  """End benevolence; abandon righteousness
+  The people return to piety and charity."""
+
+  """End cunning; discard profit
+  Bandits and thieves no longer exist."""
+
+  """Those who understand others are intelligent
+  Those who understand themselves are enlightened"""
+
+  """Those who overcome others have strength
+  Those who overcome themselves are powerful"""
+
+  """Those who know contentment are wealthy
+  Those who proceed vigorously have willpower"""
+
+  """Those who do not lose their base endure
+  Those who die but do not perish have longevity"""
+
+  """The softest things of the world
+  Override the hardest things of the world"""
+
+  """That which has no substance
+  Enters into that which has no openings"""
+
+  """Fame or the self, which is dearer?
+  The self or wealth, which is greater?
+  Gain or loss, which is more painful?"""
+
+  """Knowing contentment avoids disgrace
+  Knowing when to stop avoids danger
+  Thus one can endure indefinitely"""
+
+  """What is your original face before you were born?"""
+
+  """When you can do nothing, what can you do?"""
+
+  """When the many are reduced to one, to what is the one reduced?"""
+
+  """A monk saw a turtle in the garden of Daizui’s monastery and asked the teacher,
+  “All beings cover their bones with flesh and skin.
+  Why does this being cover its flesh and skin with bones?”
+  Master Daizui took off one of his sandals and covered the turtle with it."""
+
+  """What is the color of wind?"""
 ]
 
 module.exports = (robot) ->
