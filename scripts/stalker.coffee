@@ -63,7 +63,7 @@ clearUser = (msg) ->
     msg.send("Oh well, I knew nothing about you anyways.")
 
 # Set or Create User
-setUser = (msg, user) ->
+setUser = (msg, name) ->
   if msg.message.user.stalker?
     # Already has a Stalker ID set
     msg.send("I already know you by #{capitalize(msg.message.user.stalker.name)}")
@@ -79,7 +79,7 @@ setUser = (msg, user) ->
           users = JSON.parse(body).users
 
           for u in users
-            user = u if u.name.toLowerCase().indexOf(msg.match[1].toLowerCase()) > -1
+            user = u if u.name.toLowerCase().indexOf(name.toLowerCase()) > -1
 
           if user
             msg.message.user.stalker =
