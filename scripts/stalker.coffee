@@ -15,6 +15,7 @@
 #   hubot stalker info - Show your currently set stalker data
 
 STALKER_URL = process.env.HUBOT_STALKER_URL
+STALKER_API_TOKEN = process.env.HUBOT_STALKER_TOKEN
 
 module.exports = (robot) ->
 
@@ -27,7 +28,7 @@ module.exports = (robot) ->
 
     data =
       location: location
-      returning: ''
+      back: null
 
     setStatus(msg, data)
 
@@ -42,7 +43,7 @@ module.exports = (robot) ->
 
     data =
       location: msg.match[1] || 'Back'
-      returning: back
+      back: new Date(back)
 
     setStatus(msg, data)
 
@@ -63,20 +64,19 @@ clearUser = (msg) ->
 
 # Set or Create User
 setUser = (msg, user) ->
-  data = JSON.stringify({ name: user })
-
   if msg.message.user.stalker?
     # Already has a Stalker ID set
     msg.send("I already know you by #{capitalize(msg.message.user.stalker.name)}")
   else
     msg
-      .http("#{STALKER_URL}/users")
+      .http("#{STALKER_URL}/api/users")
       .headers('Content-Type': 'application/json')
+      .headers('Authorization': STALKER_API_TOKEN)
       .get() (err, res, body) ->
         if res.statusCode != 200
           msg.send("Something went wrong linking your stalker account.")
         else
-          users = JSON.parse(body)
+          users = JSON.parse(body).users
 
           for u in users
             user = u if u.name.toLowerCase().indexOf(msg.match[1].toLowerCase()) > -1
@@ -88,19 +88,7 @@ setUser = (msg, user) ->
 
             msg.send("You're good to go!")
           else
-            msg
-              .http("#{STALKER_URL}/users")
-              .headers('Content-Type': 'application/json')
-              .post(data) (err, res, body) ->
-                if res.statusCode != 201
-                  msg.send("Something went wrong while creating your account.")
-                else
-                  user = JSON.parse(body)
-                  msg.message.user.stalker =
-                    id: user.id
-                    name: user.name
-
-                  msg.send("Ok you can stalk now!")
+            msg.send("You should probably create your account over at #{STALKER_URL} first.")
 
 # PUT /users/:id
 setStatus = (msg, data) ->
@@ -111,17 +99,17 @@ setStatus = (msg, data) ->
     return
 
   msg
-    .http("#{STALKER_URL}/users/#{user.stalker.id}")
+    .http("#{STALKER_URL}/api/users/#{user.stalker.id}")
     .headers('Content-Type': 'application/json')
-    .put(JSON.stringify(data)) (err, res, body) ->
+    .headers('Authorization': STALKER_API_TOKEN)
+    .put(JSON.stringify(user: data)) (err, res, body) ->
       if res.statusCode != 200
         msg.send("Whoops looks like there was an error setting your status")
       else
-        user = JSON.parse(body)
+        user = JSON.parse(body).user
 
-        if user.location? && user.location != '' &&
-            user.returning? && user.returning != ''
-          msg.send("You're now #{user.location} and returning at #{user.returning}.")
+        if user.location? && user.location != '' && user.back? && user.back != ''
+          msg.send("You're now #{user.location} and will be back at #{new Date(user.back).toUTCString()}.")
         else
           msg.send("You're now #{user.location}")
 
@@ -134,18 +122,19 @@ getLocation = (msg) ->
     return
 
   msg
-    .http("#{STALKER_URL}/users/#{user.stalker.id}")
+    .http("#{STALKER_URL}/api/users/#{user.stalker.id}")
     .headers('Content-Type': 'application/json')
+    .headers('Authorization': STALKER_API_TOKEN)
     .get() (err, res, body) ->
       if res.statusCode != 200
         msg.send("Something has run amuck!")
       else
-        user = JSON.parse(body)
+        user = JSON.parse(body).user
 
         if !user.location? || user.location == ''
           msg.send("I'm afraid I know nothing about where you are.")
-        else if user.returning? && user.returning != ''
-          msg.send("I heard you were at #{user.location} and returning at #{user.returning}.")
+        else if user.back? && user.back != ''
+          msg.send("I heard you were at #{user.location} and will be back at #{new Date(user.back).toUTCString()}.")
         else
           msg.send("The last I heard you were #{user.location}")
 
@@ -155,8 +144,7 @@ capitalize = (name) ->
 
 # Validate a date/time
 validate = (str) ->
-  time = /^\d{1,2}:\d{2}$/
-  date = /^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}$/
+  datetime = /^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}\s\d{1,2}:\d{2}$/
 
-  unless time.test(str) || date.test(str)
-    "I would like an actual time in the format hh:mm or date in the format mm/dd/yyyy"
+  unless datetime.test(str)
+    "I would like an actual date and time in the format mm/dd/yyyy hh:mm"
