@@ -43,7 +43,7 @@ module.exports = (robot) ->
 
     data =
       location: msg.match[1] || 'Back'
-      back: new Date(back)
+      back: strToDate(back)
 
     setStatus(msg, data)
 
@@ -109,7 +109,8 @@ setStatus = (msg, data) ->
         user = JSON.parse(body).user
 
         if user.location? && user.location != '' && user.back? && user.back != ''
-          msg.send("You're now #{user.location} and will be back at #{new Date(user.back).toUTCString()}.")
+          back = new Date(user.back)
+          msg.send("You're now #{user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
         else
           msg.send("You're now #{user.location}")
 
@@ -134,7 +135,8 @@ getLocation = (msg) ->
         if !user.location? || user.location == ''
           msg.send("I'm afraid I know nothing about where you are.")
         else if user.back? && user.back != ''
-          msg.send("I heard you were at #{user.location} and will be back at #{new Date(user.back).toUTCString()}.")
+          back = new Date(user.back)
+          msg.send("I heard you were at #{user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
         else
           msg.send("The last I heard you were #{user.location}")
 
@@ -144,7 +146,28 @@ capitalize = (name) ->
 
 # Validate a date/time
 validate = (str) ->
-  datetime = /^\d{1,2}(?:\/|-)\d{1,2}(?:\/|-)\d{1,4}\s\d{1,2}:\d{2}$/
+  time = /^\d{1,2}:\d{2}\s*(am|pm)$/i
+  datetime = /^\d{1,2}(\/|-)\d{1,2}(\/|-)\d{1,4}\s+\d{1,2}:\d{2}\s*(am|pm)$/
 
-  unless datetime.test(str)
-    "I would like an actual date and time in the format mm/dd/yyyy hh:mm"
+  unless time.test(str) || datetime.test(str)
+    "I would like an actual date and time in the format mm/dd/yyyy hh:mm am/pm"
+
+# Convert human time string to valid date object
+strToDate = (str) ->
+  time = /^(\d{1,2}):(\d{2})\s*(am|pm)$/i
+  match = str.match(time)
+
+  str = str.slice(0, str.length - match[0].length)
+  hours = parseInt(match[1], 10)
+  minutes = parseInt(match[2], 10)
+  meridian = match[3]
+
+  if str.length == 0
+     str = new Date().toLocaleDateString() + " "
+
+  if meridian == "am"
+    str += hours + ":" + minutes
+  else
+    str += ((hours + 12) % 24) + ":" + minutes
+
+  new Date(str)
