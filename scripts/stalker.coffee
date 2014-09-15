@@ -147,14 +147,14 @@ capitalize = (name) ->
 # Validate a date/time
 validate = (str) ->
   time = /^\d{1,2}:\d{2}\s*(am|pm)$/i
-  datetime = /^\d{1,2}(\/|-)\d{1,2}(\/|-)\d{1,4}\s+\d{1,2}:\d{2}\s*(am|pm)$/
+  datetime = /^\d{1,2}(\/|-)\d{1,2}(\/|-)\d{2,4}\s+\d{1,2}:\d{2}\s*(am|pm)$/i
 
   unless time.test(str) || datetime.test(str)
     "I would like an actual date and time in the format mm/dd/yyyy hh:mm am/pm"
 
 # Convert human time string to valid date object
 strToDate = (str) ->
-  time = /^(\d{1,2}):(\d{2})\s*(am|pm)$/i
+  time = /(\d{1,2}):(\d{2})\s*(am|pm)$/i
   match = str.match(time)
 
   str = str.slice(0, str.length - match[0].length)
