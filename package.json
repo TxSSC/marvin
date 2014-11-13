@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "hubot": "^2.8.0",
-    "hubot-hipchat": "git://github.com/TxSSC/hubot-hipchat.git",
+    "hubot-hipchat": "git://github.com/hipchat/hubot-hipchat.git",
     "hubot-scripts": ">= 2.5.0 < 3.0.0"
   },
   "engines": {
