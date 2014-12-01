@@ -56,17 +56,17 @@ module.exports = (robot) ->
 
 # Clear a User
 clearUser = (msg) ->
-  if msg.message.user.stalker?
-    delete msg.message.user.stalker
+  if msg.message.hip_user.stalker?
+    delete msg.message.hip_user.stalker
     msg.send("I have already forgotten who you are.")
   else
     msg.send("Oh well, I knew nothing about you anyways.")
 
 # Set or Create User
 setUser = (msg, name) ->
-  if msg.message.user.stalker?
+  if msg.message.hip_user.stalker?
     # Already has a Stalker ID set
-    msg.send("I already know you by #{capitalize(msg.message.user.stalker.name)}")
+    msg.send("I already know you by #{capitalize(msg.message.hip_user.stalker.name)}")
   else
     msg
       .http("#{STALKER_URL}/api/users")
@@ -79,12 +79,12 @@ setUser = (msg, name) ->
           users = JSON.parse(body).users
 
           for u in users
-            user = u if u.name.toLowerCase().indexOf(name.toLowerCase()) > -1
+            hip_user = u if u.name.toLowerCase().indexOf(name.toLowerCase()) > -1
 
-          if user
-            msg.message.user.stalker =
-              id: user.id
-              name: user.name
+          if hip_user
+            msg.message.hip_user.stalker =
+              id: hip_user.id
+              name: hip_user.name
 
             msg.send("You're good to go!")
           else
@@ -92,53 +92,53 @@ setUser = (msg, name) ->
 
 # PUT /users/:id
 setStatus = (msg, data) ->
-  user = msg.message.user
+  hip_user = msg.message.hip_user
 
-  unless user.stalker?
+  unless hip_user.stalker?
     msg.send("You must tell me who you are mystery person, try asking for some help.")
     return
 
   msg
-    .http("#{STALKER_URL}/api/users/#{user.stalker.id}")
+    .http("#{STALKER_URL}/api/users/#{hip_user.stalker.id}")
     .headers('Content-Type': 'application/json')
     .headers('Authorization': STALKER_API_TOKEN)
-    .put(JSON.stringify(user: data)) (err, res, body) ->
+    .put(JSON.stringify(hip_user: data)) (err, res, body) ->
       if res.statusCode != 200
         msg.send("Whoops looks like there was an error setting your status")
       else
-        user = JSON.parse(body).user
+        hip_user = JSON.parse(body).user
 
-        if user.location? && user.location != '' && user.back? && user.back != ''
-          back = new Date(user.back)
-          msg.send("You're now #{user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
+        if hip_user.location? && hip_user.location != '' && hip_user.back? && hip_user.back != ''
+          back = new Date(hip_user.back)
+          msg.send("You're now #{hip_user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
         else
-          msg.send("You're now #{user.location}")
+          msg.send("You're now #{hip_user.location}")
 
 # GET /users/:id
 getLocation = (msg) ->
-  user = msg.message.user
+  hip_user = msg.message.hip_user
 
-  unless user.stalker?
+  unless hip_user.stalker?
     msg.send("You must tell me who you are mystery person, try asking for some help.")
     return
 
   msg
-    .http("#{STALKER_URL}/api/users/#{user.stalker.id}")
+    .http("#{STALKER_URL}/api/users/#{hip_user.stalker.id}")
     .headers('Content-Type': 'application/json')
     .headers('Authorization': STALKER_API_TOKEN)
     .get() (err, res, body) ->
       if res.statusCode != 200
         msg.send("Something has run amuck!")
       else
-        user = JSON.parse(body).user
+        hip_user = JSON.parse(body).user
 
-        if !user.location? || user.location == ''
+        if !hip_user.location? || hip_user.location == ''
           msg.send("I'm afraid I know nothing about where you are.")
-        else if user.back? && user.back != ''
-          back = new Date(user.back)
-          msg.send("I heard you were at #{user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
+        else if hip_user.back? && hip_user.back != ''
+          back = new Date(hip_user.back)
+          msg.send("I heard you were at #{hip_user.location} and will be back at #{back.toLocaleDateString()} #{back.toLocaleTimeString()}.")
         else
-          msg.send("The last I heard you were #{user.location}")
+          msg.send("The last I heard you were #{hip_user.location}")
 
 # Return a capitalized name
 capitalize = (name) ->
